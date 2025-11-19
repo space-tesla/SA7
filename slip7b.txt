@@ -1,0 +1,46 @@
+https://www.tinkercad.com/things/1aQSntRQw3W-ldr-to-vary-the-light-intensity-of-led-using-arduino
+https://www.tinkercad.com/things/1aQSntRQw3W-ldr-to-vary-the-light-intensity-of-led-using-arduino
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Slip 7b 
+Q2 Write a program for LDR to vary the light intensity of LED using Arduino. 
+int sensorValue = 0;   // store LDR value 
+void setup() { 
+pinMode(A0, INPUT);     // LDR input pin 
+Serial.begin(9600);     
+// begin serial monitor 
+pinMode(9, OUTPUT);     // LED on PWM pin 9 
+} 
+void loop() { 
+sensorValue = analogRead(A0);  // Read LDR value (0–1023) 
+Serial.println(sensorValue);   // Print for testing 
+// Map LDR value to LED brightness (0–255) 
+analogWrite(9, map(sensorValue, 0, 1023, 0, 255)); 
+delay(100);   // Small delay for stability 
+} 
+
+
+
+
+
+
+
+Arduino UNO  
+Photoresistor 
+Multimeter 
+LDR(Photoregister)  
+Resistors Breadboard LED  

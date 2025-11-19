@@ -1,145 +1,99 @@
-// Command Interface with Undo
+import java.util.Scanner;
+
+// Receiver
+class CeilingFan {
+    int speed = 0; // 0=Off, 1=Medium, 2=High
+
+    void high()   { speed = 2; System.out.println("Fan on HIGH"); }
+    void medium() { speed = 1; System.out.println("Fan on MEDIUM"); }
+    void off()    { speed = 0; System.out.println("Fan is OFF"); }
+
+    int getSpeed() { return speed; }
+}
+
+// Command Interface
 interface Command {
     void execute();
     void undo();
 }
 
-// Receiver: Ceiling Fan
-class CeilingFan {
-    public static final int HIGH = 3;
-    public static final int LOW = 1;
-    public static final int OFF = 0;
+// Concrete Commands
+class HighCommand implements Command {
+    CeilingFan fan; int prev;
+    HighCommand(CeilingFan f){ fan=f;}
+    public void execute(){ prev=fan.getSpeed(); fan.high(); }
+    public void undo(){ restore(prev); }
 
-    private int speed;
-
-    public CeilingFan() {
-        speed = OFF;
-    }
-
-    public void high() {
-        speed = HIGH;
-        System.out.println("Ceiling Fan set to HIGH");
-    }
-
-    public void low() {
-        speed = LOW;
-        System.out.println("Ceiling Fan set to LOW");
-    }
-
-    public void off() {
-        speed = OFF;
-        System.out.println("Ceiling Fan is OFF");
-    }
-
-    public int getSpeed() {
-        return speed;
+    void restore(int s){
+        if(s==2) fan.high();
+        else if(s==1) fan.medium();
+        else fan.off();
     }
 }
 
-// Concrete Command: HIGH
-class CeilingFanHighCommand implements Command {
-    CeilingFan fan;
-    int prevSpeed;
+class MediumCommand implements Command {
+    CeilingFan fan; int prev;
+    MediumCommand(CeilingFan f){ fan=f;}
+    public void execute(){ prev=fan.getSpeed(); fan.medium(); }
+    public void undo(){ restore(prev); }
 
-    public CeilingFanHighCommand(CeilingFan fan) {
-        this.fan = fan;
-    }
-
-    public void execute() {
-        prevSpeed = fan.getSpeed();
-        fan.high();
-    }
-
-    public void undo() {
-        if (prevSpeed == CeilingFan.LOW) fan.low();
-        else if (prevSpeed == CeilingFan.OFF) fan.off();
+    void restore(int s){
+        if(s==2) fan.high();
+        else if(s==1) fan.medium();
+        else fan.off();
     }
 }
 
-// Concrete Command: LOW
-class CeilingFanLowCommand implements Command {
-    CeilingFan fan;
-    int prevSpeed;
+class OffCommand implements Command {
+    CeilingFan fan; int prev;
+    OffCommand(CeilingFan f){ fan=f;}
+    public void execute(){ prev=fan.getSpeed(); fan.off(); }
+    public void undo(){ restore(prev); }
 
-    public CeilingFanLowCommand(CeilingFan fan) {
-        this.fan = fan;
-    }
-
-    public void execute() {
-        prevSpeed = fan.getSpeed();
-        fan.low();
-    }
-
-    public void undo() {
-        if (prevSpeed == CeilingFan.HIGH) fan.high();
-        else if (prevSpeed == CeilingFan.OFF) fan.off();
+    void restore(int s){
+        if(s==2) fan.high();
+        else if(s==1) fan.medium();
+        else fan.off();
     }
 }
 
-// Concrete Command: OFF
-class CeilingFanOffCommand implements Command {
-    CeilingFan fan;
-    int prevSpeed;
-
-    public CeilingFanOffCommand(CeilingFan fan) {
-        this.fan = fan;
-    }
-
-    public void execute() {
-        prevSpeed = fan.getSpeed();
-        fan.off();
-    }
-
-    public void undo() {
-        if (prevSpeed == CeilingFan.HIGH) fan.high();
-        else if (prevSpeed == CeilingFan.LOW) fan.low();
+// Invoker
+class Remote {
+    Command last;
+    void setCommand(Command c){ last=c; }
+    void press(){ last.execute(); }
+    void undo(){ 
+        if(last!=null){ 
+            System.out.println("Undoing..."); 
+            last.undo(); 
+        }
     }
 }
 
-// Invoker: Remote Control
-class RemoteControl {
-    private Command slot;
-    private Command lastCommand;
-
-    public void setCommand(Command command) {
-        slot = command;
-    }
-
-    public void pressButton() {
-        slot.execute();
-        lastCommand = slot;
-    }
-
-    public void pressUndo() {
-        System.out.println("Undoing last action...");
-        lastCommand.undo();
-    }
-}
-
-// Demo Class
 public class CeilingFanDemo {
     public static void main(String[] args) {
 
+        Scanner sc = new Scanner(System.in);
         CeilingFan fan = new CeilingFan();
+        Remote remote = new Remote();
 
-        Command highCmd = new CeilingFanHighCommand(fan);
-        Command lowCmd = new CeilingFanLowCommand(fan);
-        Command offCmd = new CeilingFanOffCommand(fan);
+        Command high = new HighCommand(fan);
+        Command med  = new MediumCommand(fan);
+        Command off  = new OffCommand(fan);
 
-        RemoteControl remote = new RemoteControl();
+        int ch;
+        do {
+            System.out.println("\n1.High  2.Medium  3.Off  4.Undo  5.Exit");
+            System.out.print("Choice: ");
+            ch = sc.nextInt();
 
-        System.out.println("---- Testing Ceiling Fan Commands ----");
+            if (ch == 1) { remote.setCommand(high); remote.press(); }
+            else if (ch == 2) { remote.setCommand(med); remote.press(); }
+            else if (ch == 3) { remote.setCommand(off); remote.press(); }
+            else if (ch == 4) { remote.undo(); }
 
-        remote.setCommand(highCmd);
-        remote.pressButton();
-        remote.pressUndo();
+        } while (ch != 5);
 
-        remote.setCommand(lowCmd);
-        remote.pressButton();
-        remote.pressUndo();
-
-        remote.setCommand(offCmd);
-        remote.pressButton();
-        remote.pressUndo();
+        sc.close();
     }
 }
